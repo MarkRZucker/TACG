@@ -1,0 +1,14 @@
+Package: TACG
+Version: 1.0.1
+Date: 2019-04-10
+Title: Simulating CNV Data
+Author: Kevin R. Coombes, Mark Zucker
+Maintainer: Kevin R. Coombes <krc@silicovore.com>
+Description: Provides functions to generate realistic simulations of chromosomes with
+  CNVs, apply segmentation algorithms to said chromosomes, and assess the accuracy
+  the results.
+Depends: R (>= 3.0)
+Imports: methods, graphics, gtools, snow, parallel, ADaCGH2, DNAcopy
+License: Apache License (== 2.0)
+URL: 
+LazyData: true

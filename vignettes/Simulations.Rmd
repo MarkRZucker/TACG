@@ -1,0 +1,39 @@
+---
+title: "Simulations"
+author: "Mark Zucker"
+date: "May 18, 2019"
+output: pdf_document
+---
+
+Generating simulations and data:
+```{r setup, include=FALSE}
+library(TACG)
+set.seed(123)
+data('loci')
+data('chlens')
+temp <- genSimChroms(N=3, chr=17, loci=loci, minLen=200000, maxLen=10000000, datapath=NULL, chlens=chlens, save=FALSE)
+sims <- lapply(1:length(temp),function(i){temp[[i]]$sim})
+dataset <- lapply(1:length(temp),function(i){temp[[i]]$dat})
+```
+
+Running segmentation algorithms:
+```{r setup, include=FALSE}
+res <- runSegAlgs(i=1, alg='DNAcopy', data=dataset[[1]], respath=NULL,saveRes=FALSE,alpha=NULL,thresh=NULL)
+algs <- c('DNAcopy','HMM','Haar','GLAD')
+indices <- 1:length(dataset)
+resSet <- runSegAlgsOnSet(algs=algs,indices=indices,cores=1,data=dataset,respath=NULL,save=FALSE)
+```
+
+Assessing results:
+```{r setup, include=FALSE}
+assessments.dnac <- assess(alg='DNAcopy',set=indices,res=resSet[1:3],sims=sims)
+assessments.hmm <- assess(alg='HMM',set=indices,res=resSet[4:6],sims=sims)
+assessments.haar <- assess(alg='Haar',set=indices,res=resSet[7:9],sims=sims)
+assessments.glad <- assess(alg='GLAD',set=indices,res=resSet[10:12],sims=sims)
+```
+
+Plotting characteristics:
+```{r setup, include=FALSE}
+
+```
+

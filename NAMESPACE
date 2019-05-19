@@ -1,0 +1,62 @@
+###
+### NAMESPACE
+###
+
+### convert base functions or S3 methods into S4 methods
+import(methods)
+importFrom("graphics", "plot", "hist")
+#exportMethods("plot", "hist") # come from 'graphics'
+#exportMethods("summary")      # comes from 'base'
+
+### other imported functions
+importFrom("graphics", "par", "segments")  # used in "plotTumorData",
+importFrom("stats",
+           "rbeta", "dbeta", "rbinom", "dbinom", "rnorm", "dnorm",
+           "rmultinom", "runif", "dgeom",
+           "density", "median", "sd", "na.omit")
+
+### Rdirichlet
+importFrom(gtools, "rdirichlet")    #
+
+### Enabling use of parallel processing
+importFrom(snow, "parLapply")    #
+importFrom(parallel, "makeCluster")    #
+importFrom(parallel, "clusterExport")    #
+importFrom(parallel, "clusterEvalQ")    #
+
+### Running segmentation algorithms
+import(DNAcopy)
+importFrom(ADaCGH2, "pSegmentHMM")    # 
+importFrom(ADaCGH2, "pSegmentGLAD") # 
+importFrom(ADaCGH2, "pSegmentHaarSeg") # 
+importFrom(ADaCGH2, "pSegmentWavelets") # 
+importFrom(ADaCGH2, "pSegmentDNAcopy") # 
+export("expit", "logit", "ford", "bacd")
+
+### tumors
+exportClasses("Tumor")
+export("Tumor", "getClone")
+export("generateTumorData", "plotTumorData")
+
+### genSimChroms.R
+export("genSimChroms")
+
+### runSegmentation.R
+export("runSegAlgs")
+export("runSegAlgsOnSet")
+export("assess")
+export("computeR")
+
+### simulate.R
+export("snpDataGen")
+export("generateTumorData")
+export("seqDataGen")
+export("plotTumorData")
+
+####################### IN PROGRESS ######################
+### needed for simulations; currently internal
+# exportClasses("Clone")
+# export("Clone")
+
+
+

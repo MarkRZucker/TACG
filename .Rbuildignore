@@ -1,0 +1,4 @@
+\.svn/(.*)
+.forgebump
+^.*\.Rproj$
+^\.Rproj\.user$
