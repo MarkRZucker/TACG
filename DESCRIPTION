@@ -8,7 +8,7 @@ Description: Provides functions to generate realistic simulations of chromosomes
   CNVs, apply segmentation algorithms to said chromosomes, and assess the accuracy
   the results.
 Depends: R (>= 3.0)
-Imports: methods, graphics, gtools, snow, parallel, ADaCGH2, DNAcopy
+Imports: methods, graphics, gtools, snow, parallel, ADaCGH2, DNAcopy, igraph
 License: Apache License (== 2.0)
 URL: 
 LazyData: true

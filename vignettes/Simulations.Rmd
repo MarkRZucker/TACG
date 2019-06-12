@@ -37,3 +37,27 @@ Plotting characteristics:
 
 ```
 
+Now, let's simulate a tumor with mutations according to a pre-specified mutation conditional probability matrix:
+```{r setup, include=FALSE}
+#Generating 6 mutation loci:
+loci <- sample(1:100000,6,replace=FALSE)
+chrs <- sort(sample(1:22,length(loci),replace=TRUE))
+probset <- c(.6,.15,.1,.05,.05,.05)
+genenames <- c('gene_A','gene_B','gene_C','gene_D','gene_E','gene_F')
+psi <- c(.35,.28,.17,.1,.07,.03)
+
+mutationProbs <- generateMutationProbs(loci, chrs, genenames, mutually.exclusive=list(c(2,4)), probs=probset)
+tumor <- Tumor(psi, rounds=6, pcnv=0, mutationProbs=mutationProbs)
+data <- generateTumorData(tumor,snps.seq=1000000,snps.cgh=600000,mu=200,sigma.reads=25,sigma0.lrr=.15, sigma0.baf=.03,density.sigma=.1)
+```
+
+Let's look at the simulated tumor and visualize the data:
+```{r setup, include=FALSE}
+library(igraph)
+tree <- tumor@tree
+tree.df <- tree$tree.df
+seqdf <- data$seq.data
+somatic <- seqdf[seqdf$status=='somatic',]
+plot(tree$tree.obj, layout = layout.reingold.tilford)
+plot(somatic$VAF)
+```

@@ -24,6 +24,9 @@ importFrom(parallel, "makeCluster")    #
 importFrom(parallel, "clusterExport")    #
 importFrom(parallel, "clusterEvalQ")    #
 
+###Plotting trees
+import("igraph")
+
 ### Running segmentation algorithms
 import(DNAcopy)
 importFrom(ADaCGH2, "pSegmentHMM")    # 
@@ -52,6 +55,14 @@ export("snpDataGen")
 export("generateTumorData")
 export("seqDataGen")
 export("plotTumorData")
+
+### cloneMaker.R
+export("WeightVector")
+exportClasses("WeightVector")
+
+### treeMaker.R
+export("generateMutationProbs")
+exportClasses("mutationProbs")
 
 ####################### IN PROGRESS ######################
 ### needed for simulations; currently internal

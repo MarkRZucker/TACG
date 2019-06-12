@@ -106,11 +106,11 @@ genSimChroms <- function(N, chr=17, loci, minLen=200000, maxLen=10000000, datapa
     })
     sim <- new("Tumor",psi=new("WeightVector",psi=psi),clones=clones)
     if(save){
-      snpDataGen(sim,snp.loci=loci,snps.cgh=length(loci),sigma0.baf=sigmaSet[1],sigma0.lrr=sigmaSet[1]*5,segmented=FALSE,snp.rate=.33,save=TRUE,
+      snpDataGen(sim,snp.loci=loci,snps.ary=length(loci),sigma0.baf=sigmaSet[1],sigma0.lrr=sigmaSet[1]*5,segmented=FALSE,snp.rate=.33,save=TRUE,
                  fn=paste(datpath,'/simdat',q,'.rda',sep=''),id=q)
       out <- sim
     }else{
-      dat <- snpDataGen(sim,snp.loci=loci,snps.cgh=length(loci),sigma0.baf=sigmaSet[1],sigma0.lrr=sigmaSet[1]*5,segmented=FALSE,snp.rate=.33,save=FALSE,
+      dat <- snpDataGen(sim,snp.loci=loci,snps.ary=length(loci),sigma0.baf=sigmaSet[1],sigma0.lrr=sigmaSet[1]*5,segmented=FALSE,snp.rate=.33,save=FALSE,
                  fn=NULL,id=q)
       out <- list('dat'=dat,'sim'=sim)
     }

@@ -1,11 +1,11 @@
 ### want to use Tumor objects as input
-generateTumorData <- function(tumor, snps.seq, snps.cgh, mu, sigma.reads, sigma0.lrr, sigma0.baf, density.sigma){
-  if(snps.cgh > 0){
-    cndat <- snpDataGen(tumor, snps.cgh, sigma0.lrr, sigma0.baf, density.sigma)
+generateTumorData <- function(tumor, snps.seq, snps.ary, mu, sigma.reads, sigma0.lrr, sigma0.baf, density.sigma){
+  if(!is.na(snps.ary)){
+    cndat <- snpDataGen(tumor, snps.ary, sigma0.lrr, sigma0.baf, density.sigma)
   }else{
     cndat <- NA
   }
-  if(snps.seq){
+  if(!is.na(snps.seq)){
     seqdat <- seqDataGen(tumor, snps.seq, density.sigma, mu, sigma.reads)
   }else{
     seqdat <- NA
@@ -14,7 +14,7 @@ generateTumorData <- function(tumor, snps.seq, snps.cgh, mu, sigma.reads, sigma0
 }
 
 ### TODO: Document the algorithm
-snpDataGen <- function(tumor, snps.cgh=600000, sigma0.lrr=.01, sigma0.baf=.01, segmented=TRUE, snp.rate=NULL, snp.loci=NULL, theta=1, density.sigma=.1, save=FALSE, fn, id){
+snpDataGen <- function(tumor, snps.ary=600000, sigma0.lrr=.01, sigma0.baf=.01, segmented=TRUE, snp.rate=NULL, snp.loci=NULL, theta=1, density.sigma=.1, save=FALSE, fn, id){
   psi <- tumor@psi
   if(class(psi)=='WeightVector'){
     psi <- psi@psi
@@ -28,7 +28,7 @@ snpDataGen <- function(tumor, snps.cgh=600000, sigma0.lrr=.01, sigma0.baf=.01, s
   mu.lrr <- log10(eta.total/2)
   lens <- sapply(1:nrow(cn.clones[[1]]),function(j){cn.clones[[1]]$end[j] - cn.clones[[1]]$start[j] + 1})
   lens <- lens/sum(lens)
-  markers <- round(lens*snps.cgh)
+  markers <- round(lens*snps.ary)
   sigmas.lrr <- sigma0.lrr/(markers)^.5
   sigmas.baf <- sigma0.baf/(markers)^.5
   if(segmented){
@@ -107,7 +107,7 @@ seqDataGen <- function(tumor, snps.seq=1000000, density.sigma, mu, sigma.reads){
     chr <- rep(chrs[j], markers[j])
     VAFs <- varCounts/(totalCounts)
     seg <- rep(j, markers[j])
-    for(k in 1:length(refCounts)){
+    for(k in min(1,length(refCounts)):length(refCounts)){
       snpdf[sum(markers[1:j]) - markers[j] +k, ] <- c(chr[k], seg[k], NA, refCounts[k], varCounts[k], VAFs[k], totalCounts[k])
     }
   }
@@ -116,19 +116,21 @@ seqDataGen <- function(tumor, snps.seq=1000000, density.sigma, mu, sigma.reads){
   seq.clones <- lapply(1:length(tumor@clones), function(i){tumor@clones[[i]]$seq})
   cn.clones <- lapply(1:length(tumor@clones), function(i){tumor@clones[[i]]$cn})
   ## Here be monsters. Next part fails if norm.contam was set to TRUE earlier.
-  mutids <- unique(unlist(lapply(1:length(which(psi > 0)), function(j) {
-    seq.clones[[j]]$mut.id
+  joined <- unique(Reduce(rbind,lapply(1:length(which(psi > 0)),function(j){
+    seq.clones[[j]]
   })))
-  mutdf <- matrix(NA, nrow=length(mutids), ncol=7)
-  colnames(mutdf) <- c('chr', 'seg', 'mut.id', 'refCounts', 'varCounts', 'VAF', 'totalCounts')
+  mutids <- joined$mut.id
+  genes <- joined$gene
+  mutdf <- matrix(NA, nrow=length(mutids), ncol=8)
+  colnames(mutdf) <- c('chr', 'seg', 'mut.id', 'refCounts', 'varCounts', 'VAF', 'totalCounts', 'genes')
   if(length(mutids)>0){
     for(j in 1:length(mutids)){
       indices <- which(sapply(1:length(which(psi>0)), function(k){mutids[j] %in% seq.clones[[k]]$mut.id}))
       indices.unmutated <- which(sapply(1:length(which(psi>0)), function(k){!mutids[j] %in% seq.clones[[k]]$mut.id}))
       coefs <- psi[indices]
-      mutated <- sapply(indices, function(k){seq.clones[[k]]$mutated.copies[which(seq.clones[[k]]$mut.id==mutids[j])]})
-      normal <- sapply(indices, function(k){seq.clones[[k]]$normal.copies[which(seq.clones[[k]]$mut.id==mutids[j])]})
-      seg <- seq.clones[[indices[1]]]$seg[which(seq.clones[[indices[1]]]$mut.id==mutids[j])]
+      mutated <- as.numeric(as.character(sapply(indices, function(k){seq.clones[[k]]$mutated.copies[which(as.character(seq.clones[[k]]$mut.id)==as.character(mutids[j]))]})))
+      normal <- as.numeric(as.character(sapply(indices, function(k){seq.clones[[k]]$normal.copies[which(as.character(seq.clones[[k]]$mut.id)==as.character(mutids[j]))]})))
+      seg <- seq.clones[[indices[1]]]$seg[which(as.character(seq.clones[[indices[1]]]$mut.id)==as.character(mutids[j]))]
       if(length(indices.unmutated)>0){
         coefs.unmutated <- psi[indices.unmutated]
         eta.unmutated <- sum(psi[indices.unmutated]*sapply(indices.unmutated, function(i){
@@ -143,8 +145,8 @@ seqDataGen <- function(tumor, snps.seq=1000000, density.sigma, mu, sigma.reads){
       refCount <- rbinom(1, totalCount, pR)
       varCount <- totalCount - refCount
       VAF <- varCount/(varCount+refCount)
-      chr <- seq.clones[[indices[1]]]$chr[which(seq.clones[[indices[1]]]$mut.id==mutids[j])]
-      mutdf[j, ] <- c(chr, seg, mutids[j], refCount, varCount, VAF, totalCount)
+      chr <- seq.clones[[indices[1]]]$chr[which(as.character(seq.clones[[indices[1]]]$mut.id)==as.character(mutids[j]))]
+      mutdf[j, ] <- c(chr, seg, mutids[j], refCount, varCount, VAF, totalCount, genes[j])
     }
   }
   mutdf <- as.data.frame(mutdf)
