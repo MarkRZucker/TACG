@@ -1,7 +1,7 @@
 ---
 title: "Simulating Mutation Trees"
 author: "Mark Zucker"
-date: "June 7, 2019"
+date: "June 11, 2019"
 output:
   html_document: default
   pdf_document: default
@@ -22,7 +22,7 @@ genenames <- c('A','B','C','D','E','F')
 psi <- c(.35,.28,.17,.1,.07,.03)
 mutationProbs <- generateMutationProbs(loci, chrs, genenames, mutually.exclusive=list(c(2,4)), probs=probset)
 tumor <- Tumor(psi, rounds=length(psi), pcnv=0, nu=0, mutationProbs=mutationProbs, labelSize=.5)
-data <- generateTumorData(tumor,snps.seq=0,snps.ary=NA,mu=0,sigma.reads=10,sigma0.lrr=.15, sigma0.baf=.03,density.sigma=.1)
+data <- generateTumorData(tumor,snps.seq=0,snps.ary=NA,mu=100,sigma.reads=10,sigma0.lrr=.15, sigma0.baf=.03,density.sigma=.1)
 ```
 The function 'generateMutationProbs' randomly generates a matrix of conditional mutation probabilities. Loci, chromosomes, and genenames are given, as are mutual exclusivity relationships. One can also manually create an object containing this information.
 
@@ -79,7 +79,7 @@ Plotting the variant allele fraction data, without passengers:
 ```{r, echo=FALSE, fig.width=8, fig.height=6}
 seqdf <- data$seq.data
 somatic <- seqdf[seqdf$status=='somatic',]
-plot(somatic$VAF, pch=16)
+plot(as.numeric(as.character(somatic$VAF)), pch=16, xlab='Mutation Index',ylab='VAF')
 ```
 
 
@@ -94,7 +94,7 @@ tumors <- lapply(1:N,function(i){
   Tumor(psi=psiset[[i]], rounds=rs[i], pcnv=0, nu=2, mutationProbs=mutationProbs, labelSize=.5)
 })
 somaticDataSet <- lapply(1:length(tumors),function(i){
-  tumorDataSet <- generateTumorData(tumors[[i]],snps.seq=0,snps.ary=NA,mu=0,sigma.reads=10,sigma0.lrr=.15,
+  tumorDataSet <- generateTumorData(tumors[[i]],snps.seq=0,snps.ary=NA,mu=100,sigma.reads=10,sigma0.lrr=.15,
                     sigma0.baf=.03,density.sigma=.1)
   seqdf <- tumorDataSet$seq.data
   seqdf[seqdf$status=='somatic',]
@@ -114,9 +114,9 @@ plot(tumors[[5]]@tree$tree.obj, layout = layout.reingold.tilford)
 And the simulated data VAFs (now with some passengers):
 
 ```{r, echo=FALSE, fig.width=8, fig.height=6}
-plot(somaticDataSet[[1]]$VAF,xlab='Mutation Index',ylab='VAF',pch=16)
-plot(somaticDataSet[[2]]$VAF,xlab='Mutation Index',ylab='VAF',pch=16)
-plot(somaticDataSet[[3]]$VAF,xlab='Mutation Index',ylab='VAF',pch=16)
-plot(somaticDataSet[[4]]$VAF,xlab='Mutation Index',ylab='VAF',pch=16)
-plot(somaticDataSet[[5]]$VAF,xlab='Mutation Index',ylab='VAF',pch=16)
+plot(as.numeric(as.character(somaticDataSet[[1]]$VAF)),xlab='Mutation Index',ylab='VAF',pch=16)
+plot(as.numeric(as.character(somaticDataSet[[2]]$VAF)),xlab='Mutation Index',ylab='VAF',pch=16)
+plot(as.numeric(as.character(somaticDataSet[[3]]$VAF)),xlab='Mutation Index',ylab='VAF',pch=16)
+plot(as.numeric(as.character(somaticDataSet[[4]]$VAF)),xlab='Mutation Index',ylab='VAF',pch=16)
+plot(as.numeric(as.character(somaticDataSet[[5]]$VAF)),xlab='Mutation Index',ylab='VAF',pch=16)
 ```

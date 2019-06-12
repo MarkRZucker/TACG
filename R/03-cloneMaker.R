@@ -289,7 +289,8 @@ Tumor <- function(psi, rounds, nu=100, pcnv=0.5, norm.contam=FALSE, cnmax=4, mut
       }
       if(!is.null(mutationProbs)){
         if(!is.null(mutationProbs@genenames)){
-          genenames[which(starts %in% mut.loci)] <- mutationProbs@genenames[which(mut.loci %in% starts)]
+          genenames[which(starts %in% mut.loci & mut.chrs.new %in% mut.chrs)] <- 
+            mutationProbs@genenames[which(mut.loci %in% starts & mut.chrs %in% mut.chrs.new)]
         }
       }
       seqmat <- cbind(mut.chrs.new, starts, mut.segs, mut.ids, genenames, rep(1, length(starts)), alleles)

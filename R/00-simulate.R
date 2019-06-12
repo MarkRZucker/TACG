@@ -113,24 +113,32 @@ seqDataGen <- function(tumor, snps.seq=1000000, density.sigma, mu, sigma.reads){
   }
   snpdf <- as.data.frame(snpdf)
   snpdf$status <- rep('germline', nrow(snpdf))
-  seq.clones <- lapply(1:length(tumor@clones), function(i){tumor@clones[[i]]$seq})
+  seq.clones <- lapply(1:length(tumor@clones), function(i){
+    temp <- tumor@clones[[i]]$seq
+    temp$uniqID <- sapply(1:nrow(temp), function(j){paste(temp$chr[j],'-',temp$start[j],sep='')})
+    temp
+  })
   cn.clones <- lapply(1:length(tumor@clones), function(i){tumor@clones[[i]]$cn})
   ## Here be monsters. Next part fails if norm.contam was set to TRUE earlier.
   joined <- unique(Reduce(rbind,lapply(1:length(which(psi > 0)),function(j){
     seq.clones[[j]]
   })))
-  mutids <- joined$mut.id
+  uniqID <- unique(sapply(1:nrow(joined),function(x){
+    paste(joined$chr[x],'-',joined$start[x],sep='')
+  }))
   genes <- joined$gene
-  mutdf <- matrix(NA, nrow=length(mutids), ncol=8)
-  colnames(mutdf) <- c('chr', 'seg', 'mut.id', 'refCounts', 'varCounts', 'VAF', 'totalCounts', 'genes')
-  if(length(mutids)>0){
-    for(j in 1:length(mutids)){
-      indices <- which(sapply(1:length(which(psi>0)), function(k){mutids[j] %in% seq.clones[[k]]$mut.id}))
-      indices.unmutated <- which(sapply(1:length(which(psi>0)), function(k){!mutids[j] %in% seq.clones[[k]]$mut.id}))
+  mutdf <- matrix(NA, nrow=length(uniqID), ncol=8)
+  colnames(mutdf) <- c('chr', 'seg', 'start', 'refCounts', 'varCounts', 'VAF', 'totalCounts', 'genes')
+  if(length(uniqID)>0){
+    for(j in 1:length(uniqID)){
+      indices <- which(sapply(1:length(which(psi>0)), function(k){uniqID[j] %in% seq.clones[[k]]$uniqID}))
+      mutGene <- seq.clones[[indices[1]]]$gene[which(as.character(seq.clones[[indices[1]]]$uniqID)==as.character(uniqID[j]))]
+      mutStart <- seq.clones[[indices[1]]]$start[which(as.character(seq.clones[[indices[1]]]$uniqID)==as.character(uniqID[j]))]
+      indices.unmutated <- which(sapply(1:length(which(psi>0)), function(k){!uniqID[j] %in% seq.clones[[k]]$uniqID}))
       coefs <- psi[indices]
-      mutated <- as.numeric(as.character(sapply(indices, function(k){seq.clones[[k]]$mutated.copies[which(as.character(seq.clones[[k]]$mut.id)==as.character(mutids[j]))]})))
-      normal <- as.numeric(as.character(sapply(indices, function(k){seq.clones[[k]]$normal.copies[which(as.character(seq.clones[[k]]$mut.id)==as.character(mutids[j]))]})))
-      seg <- seq.clones[[indices[1]]]$seg[which(as.character(seq.clones[[indices[1]]]$mut.id)==as.character(mutids[j]))]
+      mutated <- as.numeric(as.character(sapply(indices, function(k){seq.clones[[k]]$mutated.copies[which(as.character(seq.clones[[k]]$uniqID)==as.character(uniqID[j]))]})))
+      normal <- as.numeric(as.character(sapply(indices, function(k){seq.clones[[k]]$normal.copies[which(as.character(seq.clones[[k]]$uniqID)==as.character(uniqID[j]))]})))
+      seg <- seq.clones[[indices[1]]]$seg[which(as.character(seq.clones[[indices[1]]]$uniqID)==as.character(uniqID[j]))]
       if(length(indices.unmutated)>0){
         coefs.unmutated <- psi[indices.unmutated]
         eta.unmutated <- sum(psi[indices.unmutated]*sapply(indices.unmutated, function(i){
@@ -145,14 +153,20 @@ seqDataGen <- function(tumor, snps.seq=1000000, density.sigma, mu, sigma.reads){
       refCount <- rbinom(1, totalCount, pR)
       varCount <- totalCount - refCount
       VAF <- varCount/(varCount+refCount)
-      chr <- seq.clones[[indices[1]]]$chr[which(as.character(seq.clones[[indices[1]]]$mut.id)==as.character(mutids[j]))]
-      mutdf[j, ] <- c(chr, seg, mutids[j], refCount, varCount, VAF, totalCount, genes[j])
+      VAF <- round(VAF,digits = 4)
+      if(is.nan(VAF)){
+        VAF <- NA
+      }
+      chr <- seq.clones[[indices[1]]]$chr[which(as.character(seq.clones[[indices[1]]]$uniqID)==as.character(uniqID[j]))]
+      mutdf[j, ] <- c(as.character(chr), as.character(seg), as.character(mutStart), refCount, varCount, 
+                      VAF, totalCount, as.character(mutGene))
     }
   }
   mutdf <- as.data.frame(mutdf)
   mutdf$status <- rep('somatic', nrow(mutdf))
   vardf <- rbind(snpdf, mutdf)
   vardf <- vardf[with(vardf, order(seg)), ]
+  rownames(vardf) <- NULL
   vardf
 }
 
